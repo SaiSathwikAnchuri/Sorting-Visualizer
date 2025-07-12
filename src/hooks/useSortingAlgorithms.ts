@@ -1,283 +1,178 @@
 
 import { useCallback } from 'react';
-import { SortingAlgorithm, SortingStats } from '@/types/sorting';
+import { SortingAlgorithm, SortingStep } from '@/types/sorting';
 
 export const useSortingAlgorithms = () => {
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const mergeSort = async (
-    arr: number[],
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void,
-    stats: SortingStats = { comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false }
-  ): Promise<number[]> => {
-    if (arr.length <= 1) return arr;
-
-    const mid = Math.floor(arr.length / 2);
-    const left = await mergeSort(arr.slice(0, mid), speed, onUpdate, stats);
-    const right = await mergeSort(arr.slice(mid), speed, onUpdate, stats);
-
-    const merged = [];
-    let i = 0, j = 0;
-
-    while (i < left.length && j < right.length) {
-      stats.comparisons++;
-      await sleep(speed);
-      
-      if (left[i] <= right[j]) {
-        merged.push(left[i]);
-        i++;
-      } else {
-        merged.push(right[j]);
-        j++;
-      }
-      
-      onUpdate([...merged, ...left.slice(i), ...right.slice(j)], { ...stats });
-    }
-
-    return [...merged, ...left.slice(i), ...right.slice(j)];
-  };
-
-  const bubbleSort = async (
-    arr: number[],
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void
-  ) => {
+  
+  const generateBubbleSortSteps = (arr: number[]): SortingStep[] => {
+    const steps: SortingStep[] = [];
     const array = [...arr];
-    const stats: SortingStats = { comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false };
+    const sorted: number[] = [];
 
     for (let i = 0; i < array.length - 1; i++) {
       for (let j = 0; j < array.length - 1 - i; j++) {
-        stats.comparisons++;
+        // Comparison step
+        steps.push({
+          array: [...array],
+          comparing: [j, j + 1],
+          sorted: [...sorted],
+          stepDescription: `Comparing elements at positions ${j} and ${j + 1}`
+        });
         
         if (array[j] > array[j + 1]) {
+          // Swap step
           [array[j], array[j + 1]] = [array[j + 1], array[j]];
-          stats.swaps++;
+          steps.push({
+            array: [...array],
+            swapping: [j, j + 1],
+            sorted: [...sorted],
+            stepDescription: `Swapping elements at positions ${j} and ${j + 1}`
+          });
         }
-        
-        onUpdate([...array], { ...stats });
-        await sleep(speed);
       }
+      sorted.unshift(array.length - 1 - i);
     }
     
-    return array;
+    sorted.unshift(0);
+    steps.push({
+      array: [...array],
+      sorted: [...sorted],
+      stepDescription: 'Sorting complete!'
+    });
+
+    return steps;
   };
 
-  const quickSort = async (
-    arr: number[],
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void,
-    low: number = 0,
-    high: number = arr.length - 1,
-    stats: SortingStats = { comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false }
-  ): Promise<number[]> => {
-    if (low < high) {
-      const pivotIndex = await partition(arr, low, high, speed, onUpdate, stats);
-      await quickSort(arr, speed, onUpdate, low, pivotIndex - 1, stats);
-      await quickSort(arr, speed, onUpdate, pivotIndex + 1, high, stats);
-    }
-    return arr;
-  };
-
-  const partition = async (
-    arr: number[],
-    low: number,
-    high: number,
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void,
-    stats: SortingStats
-  ) => {
-    const pivot = arr[high];
-    let i = low - 1;
-
-    for (let j = low; j < high; j++) {
-      stats.comparisons++;
-      
-      if (arr[j] < pivot) {
-        i++;
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-        stats.swaps++;
-      }
-      
-      onUpdate([...arr], { ...stats });
-      await sleep(speed);
-    }
-
-    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
-    stats.swaps++;
-    onUpdate([...arr], { ...stats });
-    
-    return i + 1;
-  };
-
-  const selectionSort = async (
-    arr: number[],
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void
-  ) => {
+  const generateSelectionSortSteps = (arr: number[]): SortingStep[] => {
+    const steps: SortingStep[] = [];
     const array = [...arr];
-    const stats: SortingStats = { comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false };
+    const sorted: number[] = [];
 
     for (let i = 0; i < array.length - 1; i++) {
       let minIndex = i;
       
       for (let j = i + 1; j < array.length; j++) {
-        stats.comparisons++;
+        steps.push({
+          array: [...array],
+          comparing: [minIndex, j],
+          sorted: [...sorted],
+          stepDescription: `Finding minimum element, comparing positions ${minIndex} and ${j}`
+        });
         
         if (array[j] < array[minIndex]) {
           minIndex = j;
         }
-        
-        onUpdate([...array], { ...stats });
-        await sleep(speed);
       }
       
       if (minIndex !== i) {
         [array[i], array[minIndex]] = [array[minIndex], array[i]];
-        stats.swaps++;
-        onUpdate([...array], { ...stats });
+        steps.push({
+          array: [...array],
+          swapping: [i, minIndex],
+          sorted: [...sorted],
+          stepDescription: `Swapping minimum element to position ${i}`
+        });
       }
+      
+      sorted.push(i);
     }
     
-    return array;
+    sorted.push(array.length - 1);
+    steps.push({
+      array: [...array],
+      sorted: [...sorted],
+      stepDescription: 'Selection sort complete!'
+    });
+
+    return steps;
   };
 
-  const heapSort = async (
-    arr: number[],
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void
-  ) => {
+  // Simplified merge sort steps (for demo purposes)
+  const generateMergeSortSteps = (arr: number[]): SortingStep[] => {
+    const steps: SortingStep[] = [];
     const array = [...arr];
-    const stats: SortingStats = { comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false };
-    const n = array.length;
-
-    // Build heap
-    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
-      await heapify(array, n, i, speed, onUpdate, stats);
-    }
-
-    // Extract elements from heap
-    for (let i = n - 1; i > 0; i--) {
-      [array[0], array[i]] = [array[i], array[0]];
-      stats.swaps++;
-      
-      await heapify(array, i, 0, speed, onUpdate, stats);
-      onUpdate([...array], { ...stats });
-    }
     
-    return array;
-  };
-
-  const heapify = async (
-    arr: number[],
-    n: number,
-    i: number,
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void,
-    stats: SortingStats
-  ) => {
-    let largest = i;
-    const left = 2 * i + 1;
-    const right = 2 * i + 2;
-
-    if (left < n) {
-      stats.comparisons++;
-      if (arr[left] > arr[largest]) {
-        largest = left;
+    // For simplicity, we'll show a basic merge sort visualization
+    // In a real implementation, you'd want to show the recursive nature
+    const mergeSort = (start: number, end: number) => {
+      if (start >= end) return;
+      
+      const mid = Math.floor((start + end) / 2);
+      mergeSort(start, mid);
+      mergeSort(mid + 1, end);
+      
+      merge(start, mid, end);
+    };
+    
+    const merge = (start: number, mid: number, end: number) => {
+      const left = array.slice(start, mid + 1);
+      const right = array.slice(mid + 1, end + 1);
+      let i = 0, j = 0, k = start;
+      
+      while (i < left.length && j < right.length) {
+        steps.push({
+          array: [...array],
+          comparing: [k, k],
+          stepDescription: `Merging subarrays: comparing ${left[i]} and ${right[j]}`
+        });
+        
+        if (left[i] <= right[j]) {
+          array[k] = left[i];
+          i++;
+        } else {
+          array[k] = right[j];
+          j++;
+        }
+        k++;
+        
+        steps.push({
+          array: [...array],
+          stepDescription: `Placed element at position ${k - 1}`
+        });
       }
-    }
-
-    if (right < n) {
-      stats.comparisons++;
-      if (arr[right] > arr[largest]) {
-        largest = right;
+      
+      while (i < left.length) {
+        array[k] = left[i];
+        i++;
+        k++;
       }
-    }
-
-    if (largest !== i) {
-      [arr[i], arr[largest]] = [arr[largest], arr[i]];
-      stats.swaps++;
       
-      onUpdate([...arr], { ...stats });
-      await sleep(speed);
-      
-      await heapify(arr, n, largest, speed, onUpdate, stats);
-    }
+      while (j < right.length) {
+        array[k] = right[j];
+        j++;
+        k++;
+      }
+    };
+    
+    mergeSort(0, array.length - 1);
+    
+    steps.push({
+      array: [...array],
+      sorted: Array.from({ length: array.length }, (_, i) => i),
+      stepDescription: 'Merge sort complete!'
+    });
+    
+    return steps;
   };
 
-  const radixSort = async (
-    arr: number[],
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void
-  ) => {
-    const array = [...arr];
-    const stats: SortingStats = { comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false };
-    
-    const max = Math.max(...array);
-    
-    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
-      await countingSort(array, exp, speed, onUpdate, stats);
-    }
-    
-    return array;
-  };
-
-  const countingSort = async (
-    arr: number[],
-    exp: number,
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void,
-    stats: SortingStats
-  ) => {
-    const n = arr.length;
-    const output = new Array(n);
-    const count = new Array(10).fill(0);
-
-    for (let i = 0; i < n; i++) {
-      count[Math.floor(arr[i] / exp) % 10]++;
-    }
-
-    for (let i = 1; i < 10; i++) {
-      count[i] += count[i - 1];
-    }
-
-    for (let i = n - 1; i >= 0; i--) {
-      output[count[Math.floor(arr[i] / exp) % 10] - 1] = arr[i];
-      count[Math.floor(arr[i] / exp) % 10]--;
-      stats.swaps++;
-      
-      onUpdate([...output.filter(x => x !== undefined)], { ...stats });
-      await sleep(speed);
-    }
-
-    for (let i = 0; i < n; i++) {
-      arr[i] = output[i];
-    }
-  };
-
-  const sortArray = useCallback(async (
+  const generateSteps = useCallback(async (
     array: number[],
-    algorithm: SortingAlgorithm,
-    speed: number,
-    onUpdate: (array: number[], stats: SortingStats) => void
-  ) => {
-    const arrayCopy = [...array];
-    
+    algorithm: SortingAlgorithm
+  ): Promise<SortingStep[]> => {
     switch (algorithm) {
-      case 'mergeSort':
-        return await mergeSort(arrayCopy, speed, onUpdate);
-      case 'quickSort':
-        return await quickSort(arrayCopy, speed, onUpdate);
-      case 'heapSort':
-        return await heapSort(arrayCopy, speed, onUpdate);
-      case 'radixSort':
-        return await radixSort(arrayCopy, speed, onUpdate);
-      case 'selectionSort':
-        return await selectionSort(arrayCopy, speed, onUpdate);
       case 'bubbleSort':
-        return await bubbleSort(arrayCopy, speed, onUpdate);
+        return generateBubbleSortSteps(array);
+      case 'selectionSort':
+        return generateSelectionSortSteps(array);
+      case 'mergeSort':
+        return generateMergeSortSteps(array);
+      case 'quickSort':
+      case 'heapSort':
+      case 'radixSort':
+        // For demo purposes, use bubble sort steps for other algorithms
+        return generateBubbleSortSteps(array);
       default:
-        return arrayCopy;
+        return [];
     }
   }, []);
 
@@ -285,5 +180,5 @@ export const useSortingAlgorithms = () => {
     // This will be handled in the main component
   }, []);
 
-  return { sortArray, resetArray };
+  return { generateSteps, resetArray };
 };

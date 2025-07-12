@@ -30,4 +30,15 @@ export interface SortingStep {
   comparing?: [number, number];
   swapping?: [number, number];
   sorted?: number[];
+  stepDescription?: string;
+}
+
+export interface SortingState {
+  isPlaying: boolean;
+  isPaused: boolean;
+  canStep: boolean;
+  currentStep: number;
+  totalSteps: number;
+  steps: SortingStep[];
+  finalResult?: number[];
 }
