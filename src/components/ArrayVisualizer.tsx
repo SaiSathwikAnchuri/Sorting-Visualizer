@@ -27,23 +27,46 @@ export const ArrayVisualizer: React.FC<ArrayVisualizerProps> = ({
     return (value / maxValue) * 100;
   };
 
+  const getBarWidth = () => {
+    return Math.max(800 / array.length - 2, 2);
+  };
+
   return (
     <div className="bg-card rounded-lg p-6 border">
       <h2 className="text-xl font-semibold mb-4 text-foreground">Array Visualization</h2>
       
-      <div className="flex items-end justify-center gap-1 h-96 bg-muted/20 rounded p-4">
-        {array.map((value, index) => (
-          <div
-            key={index}
-            className={`transition-all duration-150 rounded-t ${getBarColor(index)}`}
-            style={{
-              height: `${getBarHeight(value)}%`,
-              width: `${Math.max(800 / array.length - 2, 2)}px`,
-              minWidth: '2px'
-            }}
-            title={`Index: ${index}, Value: ${value}`}
-          />
-        ))}
+      <div className="flex items-end justify-center gap-1 h-96 bg-muted/20 rounded p-4 relative">
+        {array.map((value, index) => {
+          const barWidth = getBarWidth();
+          const barHeight = getBarHeight(value);
+          
+          return (
+            <div key={index} className="relative flex flex-col items-center">
+              {/* Value label on top */}
+              <div 
+                className="text-xs font-medium text-foreground mb-1 text-center"
+                style={{ 
+                  width: `${barWidth}px`, 
+                  minWidth: '20px',
+                  fontSize: barWidth < 20 ? '8px' : '12px'
+                }}
+              >
+                {value}
+              </div>
+              
+              {/* Bar */}
+              <div
+                className={`transition-all duration-150 rounded-t ${getBarColor(index)}`}
+                style={{
+                  height: `${barHeight}%`,
+                  width: `${barWidth}px`,
+                  minWidth: '2px'
+                }}
+                title={`Index: ${index}, Value: ${value}`}
+              />
+            </div>
+          );
+        })}
       </div>
       
       <div className="flex justify-center gap-6 mt-4 text-sm">
