@@ -161,6 +161,14 @@ const Index = () => {
     setCurrentStepData({ array: newArray, sorted: [] });
   };
 
+  const handleArraySizeChange = (size: number) => {
+    setArraySize(size);
+  };
+
+  const handleSpeedChange = (newSpeed: number) => {
+    setSpeed(newSpeed);
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -192,8 +200,8 @@ const Index = () => {
               onPause={handlePause}
               onStep={handleStep}
               onReset={handleReset}
-              onSpeedChange={setSpeed}
-              onArraySizeChange={setArraySize}
+              onSpeedChange={handleSpeedChange}
+              onArraySizeChange={handleArraySizeChange}
               currentStep={sortingState.currentStep}
               totalSteps={sortingState.totalSteps}
             />
