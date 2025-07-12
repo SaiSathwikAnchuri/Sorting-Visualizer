@@ -10,16 +10,16 @@ interface ArrayVisualizerProps {
 
 export const ArrayVisualizer: React.FC<ArrayVisualizerProps> = ({
   array,
-  comparing = [],
-  swapping = [],
+  comparing,
+  swapping,
   sorted = []
 }) => {
   const maxValue = Math.max(...array);
   
   const getBarColor = (index: number) => {
     if (sorted.includes(index)) return 'bg-green-500';
-    if (swapping.includes(index)) return 'bg-red-500';
-    if (comparing.includes(index)) return 'bg-yellow-500';
+    if (swapping && swapping.includes(index)) return 'bg-red-500';
+    if (comparing && comparing.includes(index)) return 'bg-yellow-500';
     return 'bg-primary';
   };
 
