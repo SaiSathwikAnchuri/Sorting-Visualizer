@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { ArrayVisualizer } from '@/components/ArrayVisualizer';
 import { ControlPanel } from '@/components/ControlPanel';
 import { AlgorithmPanel } from '@/components/AlgorithmPanel';
@@ -39,8 +40,6 @@ const Index = () => {
     sorted: []
   });
 
-  const animationRef = useRef<NodeJS.Timeout | null>(null);
-
   const { generateSteps, resetArray } = useSortingAlgorithms();
 
   const generateRandomArray = useCallback(() => {
@@ -62,12 +61,15 @@ const Index = () => {
     setCurrentStepData({ array: newArray, sorted: [] });
   }, [arraySize]);
 
+  // Don't generate array automatically on mount - let user input their own
+  // useEffect(() => {
+  //   generateRandomArray();
+  // }, [generateRandomArray]);
+
   const handlePlay = async () => {
     if (sortingState.isPlaying || array.length === 0) return;
     
     const startTime = Date.now();
-    let shouldContinue = true;
-    
     setSortingState(prev => ({ ...prev, isPlaying: true, isPaused: false }));
     
     // Generate all steps first
@@ -80,12 +82,8 @@ const Index = () => {
     }));
 
     // Play through steps automatically
-    for (let i = 0; i < steps.length && shouldContinue; i++) {
-      // Check if we should stop
-      if (!sortingState.isPlaying) {
-        shouldContinue = false;
-        break;
-      }
+    for (let i = 0; i < steps.length; i++) {
+      if (sortingState.isPaused) break;
       
       const step = steps[i];
       setArray([...step.array]);
@@ -100,41 +98,19 @@ const Index = () => {
         timeElapsed: Date.now() - startTime
       }));
       
-      await new Promise(resolve => {
-        animationRef.current = setTimeout(resolve, Math.max(1001 - (speed * 10), 50));
-      });
+      await new Promise(resolve => setTimeout(resolve, speed));
     }
     
-    if (shouldContinue) {
-      setSortingState(prev => ({ 
-        ...prev, 
-        isPlaying: false, 
-        finalResult: steps[steps.length - 1]?.array 
-      }));
-      setStats(prev => ({ ...prev, isComplete: true }));
-    }
-  };
-
-  const handlePause = () => {
-    if (animationRef.current) {
-      clearTimeout(animationRef.current);
-    }
-    setSortingState(prev => ({ ...prev, isPaused: true, isPlaying: false }));
-  };
-
-  const handleStop = () => {
-    if (animationRef.current) {
-      clearTimeout(animationRef.current);
-    }
     setSortingState(prev => ({ 
       ...prev, 
       isPlaying: false, 
-      isPaused: false,
-      currentStep: 0 
+      finalResult: steps[steps.length - 1]?.array 
     }));
-    setArray([...originalArray]);
-    setCurrentStepData({ array: originalArray, sorted: [] });
-    setStats({ comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false });
+    setStats(prev => ({ ...prev, isComplete: true }));
+  };
+
+  const handlePause = () => {
+    setSortingState(prev => ({ ...prev, isPaused: true, isPlaying: false }));
   };
 
   const handleStep = () => {
@@ -187,24 +163,16 @@ const Index = () => {
   };
 
   const handleArraySizeChange = (size: number) => {
-    if (typeof size === 'number') {
-      setArraySize(size);
-    }
+    setArraySize(size);
   };
 
   const handleSpeedChange = (newSpeed: number) => {
-    if (typeof newSpeed === 'number') {
-      setSpeed(newSpeed);
-    }
+    setSpeed(newSpeed);
   };
 
   const handleGenerateArray = () => {
     generateRandomArray();
   };
-
-  useEffect(() => {
-    generateRandomArray();
-  }, [generateRandomArray]);
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -237,7 +205,6 @@ const Index = () => {
               onPause={handlePause}
               onStep={handleStep}
               onReset={handleReset}
-              onStop={handleStop}
               onSpeedChange={handleSpeedChange}
               onArraySizeChange={handleArraySizeChange}
               onGenerateArray={handleGenerateArray}

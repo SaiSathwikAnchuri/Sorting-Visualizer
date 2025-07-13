@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, SkipForward, RotateCcw, Shuffle, Square } from 'lucide-react';
+import { Play, Pause, SkipForward, RotateCcw, Shuffle } from 'lucide-react';
 
 interface ControlPanelProps {
   isPlaying: boolean;
@@ -18,7 +18,6 @@ interface ControlPanelProps {
   onPause: () => void;
   onStep: () => void;
   onReset: () => void;
-  onStop: () => void;
   onSpeedChange: (speed: number) => void;
   onArraySizeChange: (size: number) => void;
   onGenerateArray: () => void;
@@ -36,23 +35,16 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onPause,
   onStep,
   onReset,
-  onStop,
   onSpeedChange,
   onArraySizeChange,
   onGenerateArray
 }) => {
   const handleSpeedChange = (values: number[]) => {
-    const newSpeed = values[0];
-    if (typeof newSpeed === 'number') {
-      onSpeedChange(newSpeed);
-    }
+    onSpeedChange(values[0]);
   };
 
   const handleArraySizeChange = (values: number[]) => {
-    const newSize = values[0];
-    if (typeof newSize === 'number') {
-      onArraySizeChange(newSize);
-    }
+    onArraySizeChange(values[0]);
   };
 
   return (
@@ -89,15 +81,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           >
             <SkipForward className="w-4 h-4 mr-2" />
             Step
-          </Button>
-
-          <Button
-            onClick={onStop}
-            disabled={!isPlaying && !isPaused && currentStep === 0}
-            variant="outline"
-          >
-            <Square className="w-4 h-4 mr-2" />
-            Stop
           </Button>
           
           <Button
@@ -136,7 +119,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         {/* Speed Control */}
         <div className="space-y-2">
-          <Label className="text-sm">Animation Speed: {Math.max(2001 - (speed * 20), 50)}ms</Label>
+          <Label className="text-sm">Animation Speed: {101 - speed}ms</Label>
           <Slider
             value={[speed]}
             onValueChange={handleSpeedChange}
