@@ -187,16 +187,24 @@ const Index = () => {
   };
 
   const handleArraySizeChange = (size: number) => {
-    setArraySize(size);
+    if (typeof size === 'number') {
+      setArraySize(size);
+    }
   };
 
   const handleSpeedChange = (newSpeed: number) => {
-    setSpeed(newSpeed);
+    if (typeof newSpeed === 'number') {
+      setSpeed(newSpeed);
+    }
   };
 
   const handleGenerateArray = () => {
     generateRandomArray();
   };
+
+  useEffect(() => {
+    generateRandomArray();
+  }, [generateRandomArray]);
 
   return (
     <div className="min-h-screen bg-background p-4">
