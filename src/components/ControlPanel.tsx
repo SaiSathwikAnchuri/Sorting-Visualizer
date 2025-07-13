@@ -42,11 +42,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onGenerateArray
 }) => {
   const handleSpeedChange = (values: number[]) => {
-    onSpeedChange(values[0]);
+    const newSpeed = values[0];
+    if (typeof newSpeed === 'number') {
+      onSpeedChange(newSpeed);
+    }
   };
 
   const handleArraySizeChange = (values: number[]) => {
-    onArraySizeChange(values[0]);
+    const newSize = values[0];
+    if (typeof newSize === 'number') {
+      onArraySizeChange(newSize);
+    }
   };
 
   return (
@@ -130,12 +136,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         {/* Speed Control */}
         <div className="space-y-2">
-          <Label className="text-sm">Animation Speed: {(101 - speed) * 10}ms</Label>
+          <Label className="text-sm">Animation Speed: {Math.max(2001 - (speed * 20), 50)}ms</Label>
           <Slider
             value={[speed]}
             onValueChange={handleSpeedChange}
             min={1}
-            max={90}
+            max={100}
             step={1}
             disabled={isPlaying}
           />
