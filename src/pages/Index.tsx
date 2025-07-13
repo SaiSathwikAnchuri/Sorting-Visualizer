@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrayVisualizer } from '@/components/ArrayVisualizer';
 import { ControlPanel } from '@/components/ControlPanel';
 import { AlgorithmPanel } from '@/components/AlgorithmPanel';
@@ -40,6 +39,8 @@ const Index = () => {
     sorted: []
   });
 
+  const animationRef = useRef<NodeJS.Timeout | null>(null);
+
   const { generateSteps, resetArray } = useSortingAlgorithms();
 
   const generateRandomArray = useCallback(() => {
@@ -60,11 +61,6 @@ const Index = () => {
     }));
     setCurrentStepData({ array: newArray, sorted: [] });
   }, [arraySize]);
-
-  // Don't generate array automatically on mount - let user input their own
-  // useEffect(() => {
-  //   generateRandomArray();
-  // }, [generateRandomArray]);
 
   const handlePlay = async () => {
     if (sortingState.isPlaying || array.length === 0) return;
@@ -98,7 +94,9 @@ const Index = () => {
         timeElapsed: Date.now() - startTime
       }));
       
-      await new Promise(resolve => setTimeout(resolve, speed));
+      await new Promise(resolve => {
+        animationRef.current = setTimeout(resolve, 101 - speed);
+      });
     }
     
     setSortingState(prev => ({ 
@@ -110,7 +108,25 @@ const Index = () => {
   };
 
   const handlePause = () => {
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+    }
     setSortingState(prev => ({ ...prev, isPaused: true, isPlaying: false }));
+  };
+
+  const handleStop = () => {
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+    }
+    setSortingState(prev => ({ 
+      ...prev, 
+      isPlaying: false, 
+      isPaused: false,
+      currentStep: 0 
+    }));
+    setArray([...originalArray]);
+    setCurrentStepData({ array: originalArray, sorted: [] });
+    setStats({ comparisons: 0, swaps: 0, timeElapsed: 0, isComplete: false });
   };
 
   const handleStep = () => {
@@ -205,6 +221,7 @@ const Index = () => {
               onPause={handlePause}
               onStep={handleStep}
               onReset={handleReset}
+              onStop={handleStop}
               onSpeedChange={handleSpeedChange}
               onArraySizeChange={handleArraySizeChange}
               onGenerateArray={handleGenerateArray}

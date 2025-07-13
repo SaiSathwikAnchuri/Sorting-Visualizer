@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, SkipForward, RotateCcw, Shuffle } from 'lucide-react';
+import { Play, Pause, SkipForward, RotateCcw, Shuffle, Square } from 'lucide-react';
 
 interface ControlPanelProps {
   isPlaying: boolean;
@@ -18,6 +18,7 @@ interface ControlPanelProps {
   onPause: () => void;
   onStep: () => void;
   onReset: () => void;
+  onStop: () => void;
   onSpeedChange: (speed: number) => void;
   onArraySizeChange: (size: number) => void;
   onGenerateArray: () => void;
@@ -35,6 +36,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onPause,
   onStep,
   onReset,
+  onStop,
   onSpeedChange,
   onArraySizeChange,
   onGenerateArray
@@ -82,6 +84,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <SkipForward className="w-4 h-4 mr-2" />
             Step
           </Button>
+
+          <Button
+            onClick={onStop}
+            disabled={!isPlaying && !isPaused && currentStep === 0}
+            variant="outline"
+          >
+            <Square className="w-4 h-4 mr-2" />
+            Stop
+          </Button>
           
           <Button
             onClick={onReset}
@@ -119,12 +130,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         {/* Speed Control */}
         <div className="space-y-2">
-          <Label className="text-sm">Animation Speed: {101 - speed}ms</Label>
+          <Label className="text-sm">Animation Speed: {(101 - speed) * 10}ms</Label>
           <Slider
             value={[speed]}
             onValueChange={handleSpeedChange}
             min={1}
-            max={100}
+            max={90}
             step={1}
             disabled={isPlaying}
           />
