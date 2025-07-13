@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrayVisualizer } from '@/components/ArrayVisualizer';
 import { ControlPanel } from '@/components/ControlPanel';
@@ -66,6 +67,8 @@ const Index = () => {
     if (sortingState.isPlaying || array.length === 0) return;
     
     const startTime = Date.now();
+    let shouldContinue = true;
+    
     setSortingState(prev => ({ ...prev, isPlaying: true, isPaused: false }));
     
     // Generate all steps first
@@ -78,8 +81,12 @@ const Index = () => {
     }));
 
     // Play through steps automatically
-    for (let i = 0; i < steps.length; i++) {
-      if (sortingState.isPaused) break;
+    for (let i = 0; i < steps.length && shouldContinue; i++) {
+      // Check if we should stop
+      if (!sortingState.isPlaying) {
+        shouldContinue = false;
+        break;
+      }
       
       const step = steps[i];
       setArray([...step.array]);
@@ -95,16 +102,18 @@ const Index = () => {
       }));
       
       await new Promise(resolve => {
-        animationRef.current = setTimeout(resolve, 101 - speed);
+        animationRef.current = setTimeout(resolve, Math.max(1001 - (speed * 10), 50));
       });
     }
     
-    setSortingState(prev => ({ 
-      ...prev, 
-      isPlaying: false, 
-      finalResult: steps[steps.length - 1]?.array 
-    }));
-    setStats(prev => ({ ...prev, isComplete: true }));
+    if (shouldContinue) {
+      setSortingState(prev => ({ 
+        ...prev, 
+        isPlaying: false, 
+        finalResult: steps[steps.length - 1]?.array 
+      }));
+      setStats(prev => ({ ...prev, isComplete: true }));
+    }
   };
 
   const handlePause = () => {
