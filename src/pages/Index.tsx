@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrayVisualizer } from '@/components/ArrayVisualizer';
 import { ControlPanel } from '@/components/ControlPanel';
