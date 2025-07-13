@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface ArrayVisualizerProps {
@@ -29,7 +30,7 @@ export const ArrayVisualizer: React.FC<ArrayVisualizerProps> = ({
     return (
       <div className="bg-card rounded-lg p-6 border text-center text-muted-foreground">
         <h2 className="text-xl font-semibold mb-4 text-foreground">Array Visualization</h2>
-        <p>No array to visualize. Please input or generate an array.</p>
+        <p>No array to visualize. Please input an array or generate a random one using the controls.</p>
       </div>
     );
   }
@@ -43,28 +44,27 @@ export const ArrayVisualizer: React.FC<ArrayVisualizerProps> = ({
     return barColors.unsorted!;
   };
 
-  const getBarHeight = (value: number) => (value / maxValue) * 100;
-  const getBarWidth = () => Math.max(800 / array.length - 2, 2);
+  const getBarHeight = (value: number) => Math.max((value / maxValue) * 100, 5);
+  const getBarWidth = () => Math.max(Math.min(800 / array.length - 2, 60), 8);
 
   return (
     <div className="bg-card rounded-lg p-6 border">
       <h2 className="text-xl font-semibold mb-4 text-foreground">Array Visualization</h2>
       
-      <div className="flex items-end justify-center gap-1 h-96 bg-muted/20 rounded p-4 relative" role="list" aria-label="Array bars">
+      <div className="flex items-end justify-center gap-1 h-96 bg-muted/20 rounded p-4 relative overflow-x-auto" role="list" aria-label="Array bars">
         {array.map((value, index) => {
           const barWidth = getBarWidth();
           const barHeight = getBarHeight(value);
           const barColor = getBarColor(index);
 
           return (
-            <div key={index} className="relative flex flex-col items-center" role="listitem">
+            <div key={index} className="relative flex flex-col items-center min-w-0 shrink-0" role="listitem">
               {/* Value label on top */}
               <div 
-                className="text-xs font-medium text-foreground mb-1 text-center"
+                className="text-xs font-bold text-foreground mb-1 text-center bg-background/80 px-1 rounded border"
                 style={{ 
-                  width: `${barWidth}px`, 
-                  minWidth: '20px',
-                  fontSize: barWidth < 20 ? '8px' : '12px'
+                  width: `${Math.max(barWidth, 24)}px`,
+                  fontSize: barWidth < 20 ? '9px' : barWidth < 30 ? '10px' : '12px'
                 }}
                 aria-label={`Value: ${value} at index ${index}`}
               >
@@ -73,21 +73,32 @@ export const ArrayVisualizer: React.FC<ArrayVisualizerProps> = ({
               
               {/* Bar */}
               <div
-                className={`transition-all duration-150 rounded-t ${barColor}`}
+                className={`transition-all duration-150 rounded-t ${barColor} flex items-end justify-center relative`}
                 style={{
                   height: `${barHeight}%`,
                   width: `${barWidth}px`,
-                  minWidth: '2px'
+                  minHeight: '20px'
                 }}
                 title={`Index: ${index}, Value: ${value}`}
                 aria-label={`Bar for value ${value} at index ${index}`}
-              />
+              >
+                {/* Value inside bar for better visibility */}
+                <div 
+                  className="text-white font-bold text-center absolute bottom-1"
+                  style={{ 
+                    fontSize: barWidth < 20 ? '8px' : barWidth < 30 ? '9px' : '10px',
+                    textShadow: '1px 1px 1px rgba(0,0,0,0.7)'
+                  }}
+                >
+                  {value}
+                </div>
+              </div>
             </div>
           );
         })}
       </div>
       
-      <div className="flex justify-center gap-6 mt-4 text-sm">
+      <div className="flex justify-center gap-6 mt-4 text-sm flex-wrap">
         <div className="flex items-center gap-2">
           <div className={`w-4 h-4 ${barColors.unsorted} rounded`}></div>
           <span className="text-muted-foreground">Unsorted</span>

@@ -61,12 +61,13 @@ const Index = () => {
     setCurrentStepData({ array: newArray, sorted: [] });
   }, [arraySize]);
 
-  useEffect(() => {
-    generateRandomArray();
-  }, [generateRandomArray]);
+  // Don't generate array automatically on mount - let user input their own
+  // useEffect(() => {
+  //   generateRandomArray();
+  // }, [generateRandomArray]);
 
   const handlePlay = async () => {
-    if (sortingState.isPlaying) return;
+    if (sortingState.isPlaying || array.length === 0) return;
     
     const startTime = Date.now();
     setSortingState(prev => ({ ...prev, isPlaying: true, isPaused: false }));
@@ -169,6 +170,10 @@ const Index = () => {
     setSpeed(newSpeed);
   };
 
+  const handleGenerateArray = () => {
+    generateRandomArray();
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -202,6 +207,7 @@ const Index = () => {
               onReset={handleReset}
               onSpeedChange={handleSpeedChange}
               onArraySizeChange={handleArraySizeChange}
+              onGenerateArray={handleGenerateArray}
               currentStep={sortingState.currentStep}
               totalSteps={sortingState.totalSteps}
             />
